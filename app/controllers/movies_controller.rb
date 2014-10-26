@@ -7,13 +7,21 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.movies(params[:ratings], params[:sort_by])
-    @ratings = Movie.ratings
-    @filters = if params[:ratings].nil?
-      @ratings
-    else
-      params[:ratings]
+    setup = Movie.set_options(params, session)
+
+    if setup[:redirect] 
+      flash.keep
+      
+      redirect_to(:action => params[:action], :controller => params[:controller], :ratings => setup[:ratings], :sort_by => setup[:sort_by])
     end
+
+    @ratings = Movie.ratings
+    @filters = setup[:ratings]
+    @movies = Movie.movies(@filters, setup[:sort_by])
+
+    session[:ratings] = setup[:ratings]
+    session[:sort_by] = setup[:sort_by]
+
   end
 
   def new
